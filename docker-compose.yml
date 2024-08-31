@@ -1,7 +1,11 @@
 volumes:
     prometheus_data: {}
     grafana_data: {}
-    internet-monitoring_config-data:
+    im-config_prometheus:
+      external: true
+    im-config_grafana:
+      external: true
+    im-config_blackbox:
       external: true
 
 networks:
@@ -16,7 +20,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - internet-monitoring_config-data/internet-monitoring/prometheus/:/etc/prometheus/
+            - im-config_prometheus/_:/etc/prometheus/
             - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -38,11 +42,9 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - internet-monitoring_config-data/internet-monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+            - im-config_grafana/_:/etc/grafana/
         ports:
             - 3030:3000
-        env_file:
-            - internet-monitoring_config-data/internet-monitoring/grafana/config.monitoring
         networks:
             - back-tier
             - front-tier
@@ -54,7 +56,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - internet-monitoring_config-data/internet-monitoring/blackbox/config:/config
+            - im-config_blackbox/_:/config
         expose:
             - 9115
         ports:
