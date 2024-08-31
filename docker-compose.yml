@@ -14,7 +14,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /home/sam/shared/util/internet-monitoring/prometheus/:/etc/prometheus/
+            - /data/internet-monitoring/prometheus/:/etc/prometheus/
             - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -36,11 +36,11 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - /home/sam/shared/util/internet-monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+            - /data/internet-monitoring/grafana/provisioning/:/etc/grafana/provisioning/
         ports:
             - 3030:3000
         env_file:
-            - /home/sam/shared/util/internet-monitoring/grafana/config.monitoring
+            - /data/internet-monitoring/grafana/config.monitoring
         networks:
             - back-tier
             - front-tier
@@ -52,7 +52,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /home/sam/shared/util/internet-monitoring/blackbox/config:/config
+            - /data/internet-monitoring/blackbox/config:/config
         expose:
             - 9115
         ports:
