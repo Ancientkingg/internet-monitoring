@@ -42,7 +42,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - im-config_grafana:/etc/grafana/
+            - im-config_grafana:/etc/grafana/provisioning
         ports:
             - 3030:3000
         networks:
