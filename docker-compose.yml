@@ -1,97 +1,97 @@
 volumes:
-  prometheus_data: {}
-  grafana_data: {}
+    prometheus_data: {}
+    grafana_data: {}
 
 networks:
-  front-tier:
-    name: internet-monitoring-front-tier
-  back-tier:
-    name: internet-monitoring-back-tier
+    front-tier:
+        name: internet-monitoring-front-tier
+    back-tier:
+        name: internet-monitoring-back-tier
 
 services:
-  prometheus:
-    image: prom/prometheus:latest
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=90d'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    ports:
-      - 9090:9090
-    links:
-      - ping:ping
-      - speedtest:speedtest
-    networks:
-      - back-tier
+    prometheus:
+        image: prom/prometheus:latest
+        restart: always
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /home/sam/shared/internet-monitoring/prometheus/:/etc/prometheus/
+            - prometheus_data:/prometheus
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--storage.tsdb.retention.time=90d'
+            - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+            - '--web.console.templates=/usr/share/prometheus/consoles'
+        ports:
+            - 9090:9090
+        links:
+            - ping:ping
+            - speedtest:speedtest
+        networks:
+            - back-tier
 
-  grafana:
-    image: grafana/grafana:latest
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning/:/etc/grafana/provisioning/
-    ports:
-      - 3030:3000
-    env_file:
-      - ./grafana/config.monitoring
-    networks:
-      - back-tier
-      - front-tier
-    depends_on:
-      - prometheus
+    grafana:
+        image: grafana/grafana:latest
+        restart: always
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - grafana_data:/var/lib/grafana
+            - /home/sam/shared/internet-monitoring/grafana/provisioning/:/etc/grafana/provisioning/
+        ports:
+            - 3030:3000
+        env_file:
+            - /home/sam/shared/internet-monitoring/grafana/config.monitoring
+        networks:
+            - back-tier
+            - front-tier
+        depends_on:
+            - prometheus
 
-  ping:
-    image: prom/blackbox-exporter:latest
-    restart: always
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - ./blackbox/config:/config
-    expose:
-      - 9115
-    ports:
-      - 9115:9115
-    tty: true
-    stdin_open: true
-    command:
-      - '--config.file=/config/blackbox.yml'
-    networks:
-      - back-tier
+    ping:
+        image: prom/blackbox-exporter:latest
+        restart: always
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /home/sam/shared/internet-monitoring/blackbox/config:/config
+        expose:
+            - 9115
+        ports:
+            - 9115:9115
+        tty: true
+        stdin_open: true
+        command:
+            - '--config.file=/config/blackbox.yml'
+        networks:
+            - back-tier
 
-  speedtest:
-    image: miguelndecarvalho/speedtest-exporter:latest
-    restart: always
-    healthcheck:
-      test: "wget --no-verbose --tries=1 --spider http://0.0.0.0:9798/"
-      timeout: 10s
-    expose:
-      - 9798
-    ports:
-      - 9798:9798
-    networks:
-      - back-tier
+    speedtest:
+        image: miguelndecarvalho/speedtest-exporter:latest
+        restart: always
+        healthcheck:
+            test: 'wget --no-verbose --tries=1 --spider http://0.0.0.0:9798/'
+            timeout: 10s
+        expose:
+            - 9798
+        ports:
+            - 9798:9798
+        networks:
+            - back-tier
 
-  nodeexp:
-    image: prom/node-exporter:latest
-    restart: always
-    privileged: true
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    ports:
-      - 9100:9100
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.sysfs=/host/sys'
-      - --collector.filesystem.ignored-mount-points
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
-    networks:
-      - back-tier
+    nodeexp:
+        image: prom/node-exporter:latest
+        restart: always
+        privileged: true
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /proc:/host/proc:ro
+            - /sys:/host/sys:ro
+            - /:/rootfs:ro
+        ports:
+            - 9100:9100
+        command:
+            - '--path.procfs=/host/proc'
+            - '--path.sysfs=/host/sys'
+            - --collector.filesystem.ignored-mount-points
+            - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+        networks:
+            - back-tier
