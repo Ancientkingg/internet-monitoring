@@ -20,7 +20,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - im-config_prometheus/_:/etc/prometheus/
+            - im-config_prometheus:/etc/prometheus/
             - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -42,7 +42,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - im-config_grafana/_:/etc/grafana/
+            - im-config_grafana:/etc/grafana/
         ports:
             - 3030:3000
         networks:
@@ -56,7 +56,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - im-config_blackbox/_:/config
+            - im-config_blackbox:/config
         expose:
             - 9115
         ports:
