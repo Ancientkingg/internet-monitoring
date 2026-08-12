@@ -4,7 +4,7 @@
 >
 > This has also recently been merged into the internet-pi repository, so there could be a few little things that need tweaking.
 
-Stand-up a Docker [Prometheus](http://prometheus.io/) stack containing Prometheus, Grafana with [blackbox-exporter](https://github.com/prometheus/blackbox_exporter), and [speedtest-exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter) to collect and graph home Internet reliability and throughput.
+Stand-up a Docker [Prometheus](http://prometheus.io/) stack containing Prometheus, Grafana, [blackbox-exporter](https://github.com/prometheus/blackbox_exporter), [speedtest-exporter](https://github.com/MiguelNdeCarvalho/speedtest-exporter), and a qBittorrent exporter.
 
 ## Pre-requisites
 
@@ -12,28 +12,44 @@ Make sure Docker and [Docker Compose](https://docs.docker.com/compose/install/) 
 
 ## Quick Start
 
-Follow the directions inside the main README file in this repository (make sure you have `monitoring_enable: true` in your `config.yml` before running the Ansible playbook).
+qBittorrent must already be reachable at `gluetun:8081` on the external Docker network `arr`.
 
-Go to [http://localhost:3030/d/o9mIe_Aik/internet-connection](http://localhost:3030/d/o9mIe_Aik/internet-connection) (change `localhost` to your docker host ip/name).
+Create the local environment file and set either an API key (qBittorrent 5.2+) or username/password:
+
+```sh
+cp .env.example .env
+```
+
+`QBITTORRENT_API_KEY` takes precedence over `QBITTORRENT_USER` and `QBITTORRENT_PASS`. The `.env` file is ignored by Git.
+
+Verify that the shared network exists, then start the stack:
+
+```sh
+docker network inspect arr
+docker compose up -d
+```
+
+The exporter joins `arr` only to reach Gluetun and joins `internet-monitoring-back-tier` for Prometheus. qBittorrent and Gluetun routing is unchanged; Prometheus and Grafana do not join `arr` or use the VPN.
+
+Open the dashboards:
+
+- Internet connection: [http://localhost:3030/d/o9mIe_Aik/internet-connection](http://localhost:3030/d/o9mIe_Aik/internet-connection)
+- qBittorrent: [http://localhost:3030/d/qbittorrent-monitoring/qbittorrent](http://localhost:3030/d/qbittorrent-monitoring/qbittorrent)
 
 ## Configuration
 
-To change what hosts you ping you change the `targets` section in [/prometheus/pinghosts.yaml](./prometheus/pinghosts.yaml) file.
+Prometheus, Blackbox, and Grafana provisioning are bind-mounted from this repository, so edit the checked-in files directly and recreate the affected container.
+
+To change what hosts you ping, change the `targets` section in [/prometheus/pinghosts.yaml](./prometheus/pinghosts.yaml).
 
 For speedtest the only relevant configuration is how often you want the check to happen. It is at 30 minutes by default which might be too much if you have limit on downloads. This is changed by editing `scrape_interval` under `speedtest` in [/prometheus/prometheus.yml](./prometheus/prometheus.yml).
 
-Once configurations are done, run the following command:
-
-    $ docker compose up -d
-
-That's it. docker-compose builds the entire Grafana and Prometheus stack automagically.
-
-The Grafana Dashboard is now accessible via: `http://<Host IP Address>:3030` for example http://localhost:3030
+The Grafana UI is accessible at `http://<Host IP Address>:3030`.
 
 username - admin
 password - wonka (Password is stored in the `config.monitoring` env file)
 
-The DataSource and Dashboard for Grafana are automatically provisioned.
+The Prometheus data source and dashboards are automatically provisioned. The qBittorrent dashboard intentionally does not alert on DHT node count because DHT may be disabled.
 
 If all works it should be available at http://localhost:3030/d/o9mIe_Aik/internet-connection - if no data shows up try change the timeduration to something smaller.
 
