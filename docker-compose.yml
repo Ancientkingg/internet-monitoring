@@ -41,6 +41,8 @@ services:
     grafana:
         image: grafana/grafana:latest
         restart: always
+        environment:
+            GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/provisioning/dashboards/node-exporter-full.json
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
