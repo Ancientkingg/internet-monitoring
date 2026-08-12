@@ -38,7 +38,7 @@ Open the dashboards:
 
 ## Configuration
 
-Prometheus, Blackbox, and Grafana provisioning are bind-mounted from this repository, so edit the checked-in files directly and recreate the affected container.
+Prometheus, Blackbox, and Grafana provisioning use the existing external `im-config_*` volumes for Portainer compatibility. The checked-in files document the intended configuration; copy changes into those volumes before recreating the affected container.
 
 To change what hosts you ping, change the `targets` section in [/prometheus/pinghosts.yaml](./prometheus/pinghosts.yaml).
 
