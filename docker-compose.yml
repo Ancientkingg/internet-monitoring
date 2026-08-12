@@ -1,6 +1,12 @@
 volumes:
     prometheus_data: {}
     grafana_data: {}
+    im-config_prometheus:
+      external: true
+    im-config_grafana:
+      external: true
+    im-config_blackbox:
+      external: true
 
 networks:
     front-tier:
@@ -16,7 +22,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - ./prometheus:/etc/prometheus:ro
+            - im-config_prometheus:/etc/prometheus/
             - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -38,7 +44,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - ./grafana/provisioning:/etc/grafana/provisioning:ro
+            - im-config_grafana:/etc/grafana/provisioning
         ports:
             - 3030:3000
         networks:
@@ -52,7 +58,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - ./blackbox/config:/config:ro
+            - im-config_blackbox:/config
         expose:
             - 9115
         ports:
