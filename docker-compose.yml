@@ -1,18 +1,14 @@
 volumes:
     prometheus_data: {}
     grafana_data: {}
-    im-config_prometheus:
-      external: true
-    im-config_grafana:
-      external: true
-    im-config_blackbox:
-      external: true
 
 networks:
     front-tier:
         name: internet-monitoring-front-tier
     back-tier:
         name: internet-monitoring-back-tier
+    arr:
+        external: true
 
 services:
     prometheus:
@@ -20,7 +16,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - im-config_prometheus:/etc/prometheus/
+            - ./prometheus:/etc/prometheus:ro
             - prometheus_data:/prometheus
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
@@ -42,7 +38,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - grafana_data:/var/lib/grafana
-            - im-config_grafana:/etc/grafana/provisioning
+            - ./grafana/provisioning:/etc/grafana/provisioning:ro
         ports:
             - 3030:3000
         networks:
@@ -56,7 +52,7 @@ services:
         restart: always
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - im-config_blackbox:/config
+            - ./blackbox/config:/config:ro
         expose:
             - 9115
         ports:
@@ -98,4 +94,17 @@ services:
             - --collector.filesystem.ignored-mount-points
             - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
         networks:
+            - back-tier
+
+    qbittorrent-exporter:
+        image: ghcr.io/esanchezm/prometheus-qbittorrent-exporter:v1.7.0
+        restart: always
+        environment:
+            QBITTORRENT_HOST: gluetun
+            QBITTORRENT_PORT: 8081
+            QBITTORRENT_USER: ${QBITTORRENT_USER:-}
+            QBITTORRENT_PASS: ${QBITTORRENT_PASS:-}
+            QBITTORRENT_API_KEY: ${QBITTORRENT_API_KEY:-}
+        networks:
+            - arr
             - back-tier

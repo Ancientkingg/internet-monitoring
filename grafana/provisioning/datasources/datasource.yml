@@ -10,6 +10,7 @@ deleteDatasources:
 # whats available in the database
 datasources:
   - name: prometheus
+    uid: prometheus
     type: prometheus
     access: proxy
     orgId: 1
